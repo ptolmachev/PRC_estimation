@@ -1,0 +1,1 @@
+{"dt": 0.02, "t_stop": 1000, "history_len": 100000, "noise_lvl": 0, "T_transient": 200, "max_amp": 35, "C": 1, "g_Na": 120, "V_Na": 85.7, "g_K": 36, "V_K": -11, "g_L": 0.3, "V_L": 10.559, "I0": 41}

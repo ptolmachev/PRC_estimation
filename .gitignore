@@ -1,0 +1,12 @@
+
+*.pkl
+
+img/
+
+*.pyc
+
+.idea/modules.xml
+
+*.xml
+
+*.iml

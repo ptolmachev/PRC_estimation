@@ -1,0 +1,6 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+*.pkl
+# ignore an entire directory
+/img/

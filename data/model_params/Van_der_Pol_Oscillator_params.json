@@ -1,0 +1,1 @@
+{"mu": 4, "dt": 0.005, "noise_lvl": 0, "t_stop": 600, "history_len": 100000, "T_transient": 10, "max_amp": 2}
