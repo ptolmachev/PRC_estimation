@@ -35,6 +35,8 @@ def plot_prc(phi, delta_phi, model_name, stim_duration, stim_amp, signal = None,
 
 if __name__ == '__main__':
     root_folder = get_project_root()
+
+    #### plotting experimental PRC
     # model_name = 'Van_der_Pol_Oscillator'
     # model_name = 'Morris_Lecar_Neuron'
     # model_name = 'Hodgkin_Huxley_Neuron'
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     #             # plt.close()
 
 
+    #### plotting exact PRC computed from full dynamics
     # model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron', 'Hodgkin_Huxley_Neuron']
     model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron']
     # model_names = ['Hindmarsh_Rose_Neuron']
@@ -71,11 +74,6 @@ if __name__ == '__main__':
     for model_name in model_names:
         modifier = 'exact_fourier'
         tag = ''
-        # dt = 0.05
-        # noise_lvl = 0.01
-        # stim_duration = 1000 * dt
-        # stim_amp = 0.1
-        # tag = f"{dt}_{noise_lvl}_{stim_duration}_{stim_amp}"
         data = pickle.load(open(f"{data_folder}/{model_name}_{modifier}_{tag}_prc.pkl", 'rb+'))
         phi = np.array(data["phi"]) % (2 * np.pi)
         delta_phi = data["delta_phi"]
@@ -87,10 +85,7 @@ if __name__ == '__main__':
         Model = eval(f"{model_name}(params)")
         F = Model.rhs_(signal_all)
         fig = plot_prc(phi, delta_phi, model_name, stim_duration=0, stim_amp=0, signal = signal, scatter=False, fit=False)
-        plt.plot(phi, np.sum(Z * F, axis = 1) - omega, color = 'r' )
-        # plt.plot((np.array(phi)), scale(signal_all), ls='-', color='b', linewidth=2, label="signal")
-        # plt.plot((np.array(phi)), Z, ls='-', color='r', linewidth=2, label="Z")
-        # plt.axhline(omega, ls= '--', color = 'r')
+        plt.plot(phi, np.sum(Z * F, axis = 1) - omega, color = 'r')
         plt.savefig(f"{root_folder}/img/{model_name}_{modifier}.png")
         plt.show(block=True)
         plt.close()

@@ -12,7 +12,6 @@ from src.utils.phase_extraction import get_period
 from copy import deepcopy
 from src.utils.utils import get_project_root
 
-
 # estimation of exact PRC using Fourier decomposition
 
 def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_components):
@@ -22,14 +21,6 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
     T = t[-1]
     omega = (2 * np.pi) / (T)
     phase = t * omega
-
-    # data = pickle.load(open("/home/pavel/Documents/0Research/Projects/PRC_estimation/data/lim_cycle_vdp.pkl", "rb+"))
-    # omega = data["omega"]
-    # T = data["T"]
-    # N = data["N"]
-    # t = data["t"]
-    # signal = data["signal"]
-    # phase = omega * t
 
     N = signal.shape[1]
     M = signal.shape[0] # time points
@@ -67,13 +58,6 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
         full_row_t_i = Row_part_1 + Row_part_2
         G[t_i * N: (t_i + 1) * N, :] = deepcopy(full_row_t_i)
 
-    # many different ways to pose optimisation task:
-
-    # Least norm solution (no hard constraints) using pinv
-    # S = np.vstack([C, G]) # M * (N + 1) x N * K
-    # s = np.hstack([c, g])
-    # x = np.linalg.pinv(S) @ s
-
     # Least norm solution (no hard constraints) using solver
     alpha = 1e-9
     S = np.vstack([1000 * C, G]) # the constraint (F(t), Z(t)) = w are much more important
@@ -82,28 +66,6 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
     solvers.options['show_progress'] = True
     sol = solvers.qp(P=matrix(2 * S.T @ S + alpha * (np.eye(N * K))), q=q)
     x = np.array(sol['x'])
-
-    # Least norm solution with (F(t), Z(t)) = w as a constraint using solver
-    # alpha = 1e-3
-    # solvers.options['show_progress'] = True
-    # q = matrix((-2 * g.reshape(1, -1) @ G).squeeze())
-    # sol = solvers.qp(P=matrix(G.T @ G + alpha * (np.eye(N * K))), q=q, A=matrix(C), b=matrix(c))
-    # x = np.array(sol['x'])
-
-    # Least norm solution with dZ/dt + D(t) Z = 0 as a constraint using solver
-    # alpha = 1e-3
-    # q = matrix((-2 * c.reshape(1, -1) @ C).squeeze())
-    # solvers.options['show_progress'] = True
-    # sol = solvers.qp(P=matrix(C.T @ C + alpha * (np.eye(N * K))), q=q, A=matrix(G), b=matrix(g))
-    # x = np.array(sol['x'])
-
-    # Least norm solution with (F(t), Z(t)) = w as a constraint using solver
-    # alpha = 1e-3
-    # solvers.options['show_progress'] = True
-    # q = matrix((-2 * g.reshape(1, -1) @ G).squeeze())
-    # sol = solvers.qp(P=matrix((np.eye(N * K))), q=q, A=matrix(C), b=matrix(c))
-    # x = np.array(sol['x'])
-
 
     coeffs = x.reshape(K, N)
     cos = np.hstack([np.cos((k + 1) * omega * t).reshape(-1, 1) for k in range(N_fourirer_components)]) # M x N_fourier_comp
