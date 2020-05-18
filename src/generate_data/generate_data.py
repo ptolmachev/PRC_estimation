@@ -18,7 +18,7 @@ def generate_data(M, params, model_name, stim_amp, stim_duration, t_stop, num_tr
     num_transient_inds = int(T_transient/dt)
     M.run(t_stop)
     t = np.array(M.t_range).squeeze()
-    signal = np.array(M.state_history).squeeze()[:, 0]
+    signal = np.array(M.state_history).squeeze()[:, 0] ###
     protophase = extract_protophase(t, signal, -1, filter=False)
     phase = extract_phase(protophase, -1, n_bins=100, order=30)
     # disregard transients
@@ -26,7 +26,7 @@ def generate_data(M, params, model_name, stim_amp, stim_duration, t_stop, num_tr
     T = get_period_(t[num_transient_inds:], phase[num_transient_inds:])
     phase_wrapped = (phase) % (2 * np.pi)
     inds = np.where(np.diff(phase_wrapped[num_transient_inds:]) < -1.0 * np.pi)[0]
-    initial_state = np.array(M.state_history)[num_transient_inds + inds[0] - 1, :].reshape(1, M.N)
+    initial_state = np.array(M.state_history)[num_transient_inds + inds[0] - 1, :].reshape(1, M.N) ###
     stim_start_baseline = (inds[7]) * dt  # start of the stimulation
     tag = f"{dt}_{noise_lvl}_{stim_duration}_{stim_amp}"
     dir_name = f"{model_name}_{tag}"
@@ -49,7 +49,7 @@ def generate_data(M, params, model_name, stim_amp, stim_duration, t_stop, num_tr
         #     M.plot_history()
         data = dict()
         data['params'] = params
-        data['signal'] = np.array(M.state_history).squeeze()[:, 0]
+        data['signal'] = np.array(M.state_history).squeeze()[:, 0] ###
         data['signal_all'] = np.array(M.state_history).squeeze()
         data['t'] = np.array(M.t_range).squeeze()
         data['inp'] = np.array(M.input_history).squeeze()

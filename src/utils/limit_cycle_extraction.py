@@ -16,8 +16,8 @@ def get_limit_cycle(Model, T, num_points):
     Model.reset()
     Model.dt = dt
     Model.run(T * 10) #10 cycles
-    states = np.array(Model.state_history).squeeze()
-    t = np.array(Model.t_range).squeeze()
+    states = np.array(Model.state_history)
+    t = np.array(Model.t_range)
     signal = states
     omega = 2 * np.pi / T
     phase = t * omega
@@ -37,24 +37,3 @@ def get_limit_cycle(Model, T, num_points):
     t = np.linspace(0, t__[-1], num_points)
     return t, cs(t)
 
-if __name__ == '__main__':
-    mu = 4
-    dt = 0.1
-    noise_lvl = 0.0
-    model = Van_der_Pol_Oscillator(mu, dt, noise_lvl)
-    # a = 3
-    # I = 1.3
-    # b = 5
-    # r = 0.001
-    # s = 4
-    # x_R = -1.6
-    # dt = 0.12
-    # noise_lvl = 0.0
-    # model = Hindmarsh_Rose(a, I, b, r, s, x_R, dt, noise_lvl)
-    T = get_period(model, t_stop = 2000)
-    t, lim_cycle = get_limit_cycle(model, T, 2000)
-    plt.plot(t, lim_cycle, label='solution')
-    plt.legend()
-    plt.xlabel("t")
-    plt.ylabel("x")
-    plt.show()

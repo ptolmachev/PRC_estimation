@@ -29,7 +29,7 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
     C = np.zeros((M, N * K)) # d phi/ dt = (F(t), Z(t)) = w
     c = omega * np.ones(M)
     for t_i in range(M):
-        F_t_i = deepcopy(model.rhs_(signal[t_i, :].reshape(1, N))).squeeze()
+        F_t_i = deepcopy(model.rhs_(signal[t_i, :]))
         F_row = np.hstack([F_t_i for i in range(K)])
         cos = np.array([np.cos((k + 1) * omega * t[t_i]) for k in range(N_fourirer_components)])
         sin = np.array([np.sin((k + 1) * omega * t[t_i]) for k in range(N_fourirer_components)])
@@ -42,7 +42,7 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
     G = np.zeros((M * N, N * K)) # dZ/dt + D(t) Z = 0; Adjoint equation
     g = np.zeros(M * N)
     for t_i in range(M):
-        D_t_i = deepcopy(model.jac_rhs(signal[t_i, :].reshape(1, N)).T)
+        D_t_i = deepcopy(model.jac_rhs(signal[t_i, :]).T)
         D_row =  np.hstack([D_t_i for k in range(K)])
         I_row = np.hstack([np.eye(N) for k in range(K)])
         cos = np.array([np.cos((k + 1) * omega * t[t_i]) for k in range(N_fourirer_components)])
@@ -84,14 +84,14 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points, N_fourirer_compo
 
 if __name__ == '__main__':
     root_folder = get_project_root()
-    model_names = ['Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron',  'Hindmarsh_Rose_Neuron']
-    # model_names = ['Hindmarsh_Rose_Neuron']
+    # model_names = ['Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron',  'Hindmarsh_Rose_Neuron', 'Hodgkin_Huxley_Neuron']
+    model_names = ['Hodgkin_Huxley_Neuron']
     for model_name in model_names:
         modifier = 'exact_fourier'
         tag = ''
         params = json.load(open(f"{root_folder}/data/model_params/{model_name}_params.json", 'r'))
         dt = params["dt"]
         t_stop = params["t_stop"]
-        exact_prc_data = get_exact_PRC(eval(f"{model_name}"), params, t_stop, num_resampling_points=5000, N_fourirer_components=1000)
+        exact_prc_data = get_exact_PRC(eval(f"{model_name}"), params, t_stop, num_resampling_points=1000, N_fourirer_components=200)
         name = f"{model_name}_{modifier}_{tag}_prc.pkl"
         pickle.dump(exact_prc_data, open(f"{root_folder}/data/processed_data/{name}", "wb+"))

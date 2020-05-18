@@ -67,9 +67,9 @@ if __name__ == '__main__':
 
 
     #### plotting exact PRC computed from full dynamics
-    # model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron', 'Hodgkin_Huxley_Neuron']
-    model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron']
-    # model_names = ['Hindmarsh_Rose_Neuron']
+    model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron', 'Hodgkin_Huxley_Neuron']
+    # model_names = ['Hindmarsh_Rose_Neuron', 'Van_der_Pol_Oscillator', 'Morris_Lecar_Neuron']
+    # model_names = ['Van_der_Pol_Oscillator']
     data_folder = f"{root_folder}/data/processed_data"
     for model_name in model_names:
         modifier = 'exact_fourier'
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         omega = data["omega"]
         Z = data["Z"]
         Model = eval(f"{model_name}(params)")
-        F = Model.rhs_(signal_all)
+        F = np.array([Model.rhs_(signal_all[i,:]) for i in range(signal_all.shape[0])])
         fig = plot_prc(phi, delta_phi, model_name, stim_duration=0, stim_amp=0, signal = signal, scatter=False, fit=False)
         plt.plot(phi, np.sum(Z * F, axis = 1) - omega, color = 'r')
         plt.savefig(f"{root_folder}/img/{model_name}_{modifier}.png")

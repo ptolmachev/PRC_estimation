@@ -5,6 +5,7 @@ from collections import deque
 from copy import deepcopy
 from matplotlib import pyplot as plt
 from src.utils.utils import get_project_root
+import numdifftools as nd
 
 '''
  class Morris Lecar Neuron which computes time series, and accepts an input function
@@ -28,7 +29,7 @@ class Morris_Lecar_Neuron():
         self.N = 2
         self.noise_lvl = params["noise_lvl"]
         self.history_len = int(params["history_len"] / self.dt)
-        self.state = np.ones((1, self.N))
+        self.state = np.ones(self.N)
         self.input = 0
         self.state_history = deque(maxlen=self.history_len)
         self.t_range = deque(maxlen=self.history_len)
@@ -51,61 +52,62 @@ class Morris_Lecar_Neuron():
         return 1.0 / (np.cosh((v - self.V3)/(2 * self.V4)))
 
     def I_Ca(self, state):
-        v = state[:, 0]
-        w = state[:, 1]
+        v = state[0]
+        w = state[1]
         return self.g_Ca * self.m_inf(v) * (v - self.V_Ca)
 
     def I_K(self, state):
-        v = state[:, 0]
-        w = state[:, 1]
+        v = state[0]
+        w = state[1]
         return self.g_K * w * (v - self.V_K)
 
     def I_L(self, state):
-        v = state[:, 0]
-        w = state[:, 1]
+        v = state[0]
+        w = state[1]
         return self.g_L * (v - self.V_L)
 
     def rhs_(self, state):
-        if state.shape[1] != self.N:
-            raise ValueError("The second dimension of a state should be a number of internal variables")
         rhs = np.zeros_like(state)
-        rhs[:, 0] = (1.0 / self.C) * (- self.I_Ca(state) - self.I_K(state) - self.I_L(state) + self.I0 + self.input)
-        rhs[:, 1] = self.phi * (self.w_inf(state[:, 0]) - state[:, 1]) / (self.tau_w(state[:, 0]))
+        rhs[0] = (1.0 / self.C) * (- self.I_Ca(state) - self.I_K(state) - self.I_L(state) + self.I0 + self.input)
+        rhs[1] = self.phi * (self.w_inf(state[0]) - state[1]) / (self.tau_w(state[0]))
         return rhs
 
     def jac_rhs(self, state):
-        # dF_1(x,y)/dx dF_1(x,y)/dy
-        # dF_2(x,y)/dx dF_2(x,y)/dy
-        jac = np.zeros((self.N, self.N))
-        v = state[:, 0]
-        w = state[:, 1]
+        return nd.Jacobian(self.rhs_)(state)
 
-        def d_I_Ca_dv(state):
-            v = state[:, 0]
-            w = state[:, 1]
-            return (self.g_Ca * self.m_inf(v) + self.g_Ca * (1/(self.V2)) * self.m_inf(v) * (1 - self.m_inf(v)) * (v - self.V_Ca))
-
-        def d_I_K_dv(state):
-            v = state[:, 0]
-            w = state[:, 1]
-            return self.g_K * w
-
-        def d_I_K_dw(state):
-            v = state[:, 0]
-            w = state[:, 1]
-            return self.g_K * (v - self.V_K)
-
-        def d_w_inf_dv(v):
-            return (1/(self.V4)) * self.w_inf(v) * (1 - self.w_inf(v))
-
-        def d_tau_w_dv(v):
-            return -(1/(2 * self.V4)) * np.sinh((v - self.V3)/(2 * self.V4)) / (np.cosh((v - self.V3)/(2 * self.V4)))**2
-
-        jac[0, 0] = (1.0 / self.C) * (-d_I_Ca_dv(state) - d_I_K_dv(state) - self.g_L)
-        jac[0, 1] = (1.0 / self.C) * (-d_I_K_dw(state))
-        jac[1, 0] = self.phi * (d_w_inf_dv(v) * self.tau_w(v) - self.w_inf(v) * d_tau_w_dv(v)) / self.tau_w(v)**2
-        jac[1, 1] = - self.phi / (self.tau_w(state[:, 0]))
-        return jac
+    # def jac_rhs(self, state):
+    #     # dF_1(x,y)/dx dF_1(x,y)/dy
+    #     # dF_2(x,y)/dx dF_2(x,y)/dy
+    #     jac = np.zeros((self.N, self.N))
+    #     v = state[0]
+    #     w = state[1]
+    #
+    #     def d_I_Ca_dv(state):
+    #         v = state[0]
+    #         w = state[1]
+    #         return (self.g_Ca * self.m_inf(v) + self.g_Ca * (1/(self.V2)) * self.m_inf(v) * (1 - self.m_inf(v)) * (v - self.V_Ca))
+    #
+    #     def d_I_K_dv(state):
+    #         v = state[0]
+    #         w = state[1]
+    #         return self.g_K * w
+    #
+    #     def d_I_K_dw(state):
+    #         v = state[0]
+    #         w = state[1]
+    #         return self.g_K * (v - self.V_K)
+    #
+    #     def d_w_inf_dv(v):
+    #         return (1/(self.V4)) * self.w_inf(v) * (1 - self.w_inf(v))
+    #
+    #     def d_tau_w_dv(v):
+    #         return -(1/(2 * self.V4)) * np.sinh((v - self.V3)/(2 * self.V4)) / (np.cosh((v - self.V3)/(2 * self.V4)))**2
+    #
+    #     jac[0, 0] = (1.0 / self.C) * (-d_I_Ca_dv(state) - d_I_K_dv(state) - self.g_L)
+    #     jac[0, 1] = (1.0 / self.C) * (-d_I_K_dw(state))
+    #     jac[1, 0] = self.phi * (d_w_inf_dv(v) * self.tau_w(v) - self.w_inf(v) * d_tau_w_dv(v)) / self.tau_w(v)**2
+    #     jac[1, 1] = - self.phi / (self.tau_w(state[:, 0]))
+    #     return jac
 
     def step_(self):
         '''
@@ -115,7 +117,7 @@ class Morris_Lecar_Neuron():
         k_s2 = self.dt * self.rhs_(self.state + k_s1 / 2)
         k_s3 = self.dt * self.rhs_(self.state + k_s2 / 2)
         k_s4 = self.dt * self.rhs_(self.state + k_s3)
-        new_state = self.state + 1.0 / 6.0 * (k_s1 + 2 * k_s2 + 2 * k_s3 + k_s4) + self.noise_lvl * np.random.randn(1, self.N)
+        new_state = self.state + 1.0 / 6.0 * (k_s1 + 2 * k_s2 + 2 * k_s3 + k_s4) + self.noise_lvl * np.random.randn(self.N)
         self.state = new_state
         return None
 
@@ -138,7 +140,7 @@ class Morris_Lecar_Neuron():
         return None
 
     def plot_history(self):
-        state_array = np.array(self.state_history).squeeze()
+        state_array = np.array(self.state_history)
         input_array = np.array(self.input_history)
         t_array = np.array(self.t_range)
         fig = plt.figure(figsize=(20, 10))
@@ -175,9 +177,9 @@ if __name__ == '__main__':
 
     # saving data
     data = dict()
-    data['state'] = np.array(mln.state_history).squeeze()
-    data['t'] = np.array(mln.t_range).squeeze()
-    data['inp'] = np.array(mln.input_history).squeeze()
+    data['state'] = np.array(mln.state_history)
+    data['t'] = np.array(mln.t_range)
+    data['inp'] = np.array(mln.input_history)
 
     save_to = f"{root_folder}/data/runs/mln_data.pkl"
     pickle.dump(data, open(save_to, "wb+"))

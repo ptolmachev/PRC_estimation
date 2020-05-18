@@ -70,8 +70,8 @@ def extract_phase(protophase, stim_start_ind, n_bins=200, order = 30):
 
 def get_period(Model, t_stop):
     Model.run(T=t_stop)
-    states = np.array(Model.state_history).squeeze()
-    t = np.array(Model.t_range).squeeze()
+    states = np.array(Model.state_history)
+    t = np.array(Model.t_range)
     protophase = extract_protophase(t, states[:, 0], -1, filter=True)
     phase = extract_phase(protophase, -1, n_bins=200, order=25)
 

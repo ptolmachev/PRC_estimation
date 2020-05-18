@@ -35,7 +35,7 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points):
     b = omega * np.ones(L)
     # Matrix A compilation
     for i in range(L):
-        A[i, i * N: (i + 1) * N] = M.rhs_(signal[i].reshape(-1, N)).squeeze()
+        A[i, i * N: (i + 1) * N] = M.rhs_(signal[i])
     # Matrix B_1 compilation: [-1, 0, 1, 0] to extract coordinate of next vector from the previous
     # Matrix B_1 corresponds to a difference of PRCs at one time and the next time: Z(t+dt) - Z(t)
     tmp = np.zeros(2 * N)
@@ -48,7 +48,7 @@ def get_exact_PRC(Model, params, t_stop, num_resampling_points):
     # Matrix B_2 correponds to a difference of PRC at one time and the next time: [ Z(t+dt) - Z(t)) + dt * D(t)Z(t) ] (which should be 0)
     B_2 = deepcopy(B_1)
     for j in range(len(signal)):
-        B_2[j * N : (j + 1) * N, j * N : (j + 1) * N] += dt * M.jac_rhs(signal[j].reshape(1, -1)).T
+        B_2[j * N : (j + 1) * N, j * N : (j + 1) * N] += dt * M.jac_rhs(signal[j]).T
     B = np.vstack([B_1, B_2]) # Smoothness is much more important
     # Thus, matrix B corresponds to maximisation of smoothness of the PRCs and to minimisation of the dynamics violation
 
